@@ -90,17 +90,27 @@ function findTheData(polygonPath) {
       "geometry": encodeURI(JSON.stringify(esriJson))
   };
   hud.APIRequest(request,function(response) {
-      balance = 0;
-      loan_count = 0;
+    balance = 0;
+    loan_count = 0;
+    var geojson = {
+        "type": "FeatureCollection",
+        "features": []
+    };
 
       $.map(response.features, function(feature,i) {
-          if(feature.attributes['IIF_CNT'] !== null && feature.attributes['IIF_CNT'] !== undefined) {
-              loan_count += parseInt(feature.attributes['IIF_CNT']);
-              balance += parseInt(feature.attributes['UNPD_BAL_SUM']);
-          }
-          $('#result-loan').html(loan_count);
-          $('#result-balance').html(balance);
+        if(feature.attributes['IIF_CNT'] !== null && feature.attributes['IIF_CNT'] !== undefined) {
+            loan_count += parseInt(feature.attributes['IIF_CNT']);
+            balance += parseInt(feature.attributes['UNPD_BAL_SUM']);
+        }
+    
+
+        geojson.features.push(Terraformer.ArcGIS.parse(feature));
+
+        $('#result-loan').html(loan_count);
+        $('#result-balance').html(balance);
       });
+      // TODO: Call geojson
+      console.log("GeoJSON", geojson);
       
   });  
 }
@@ -118,6 +128,9 @@ google.maps.event.addDomListener(window, 'load', initialize);
 var sdk = new CitySDK();
 var arcgis = sdk.modules.arcgis;
 var hud = sdk.modules.hud;
+var census = sdk.modules.census;
+census.enable("d9084c5c4a0e92c442406b5eae0f14ec71d83569");
+
 var balance = 0;
 var loan_count = 0;
     </script>
