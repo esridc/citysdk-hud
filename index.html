@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>CitySDK HUD</title>
+
+    <script type="text/javascript" src="/bower_components/jquery/dist/jquery.min.js"></script>
+    <script type="text/javascript" src="/bower_components/bootstrap/dist/js/bootstrap.min.js"></script>
+    <script type="text/javascript" src="https://rawgit.com/uscensusbureau/citysdk/master/js/citysdk.js"></script>
+    <script type="text/javascript" src="https://rawgit.com/uscensusbureau/citysdk/master/js/citysdk.census.js"></script>
+    <script src="https://rawgit.com/esridc/citysdk-arcgis/gh-pages/js/citysdk.arcgis.js" type="text/javascript"></script>
+    <script src="../js/citysdk.hud.js" type="text/javascript"></script>
+    <link href="/bower_components/bootstrap/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="/bower_components/bootstrap/dist/css/bootstrap-theme.min.css" rel="stylesheet">
+
+  <script type="text/javascript">
+
+        var sdk = new CitySDK();
+        var arcgis = sdk.modules.arcgis;
+        var hud = sdk.modules.hud;
+        var geometry = {"rings":[[[-79.98167037963867,40.44694705960048],[-79.97119903564453,40.4461632419783],[-79.9801254272461,40.439631072987716],[-79.98458862304688,40.44224401675592]]],"spatialReference":{"wkid":4326}};
+        var balance = 0;
+        var loan_count = 0;
+
+        var request = { 
+                "source": "FHA Insurance",
+                "geometry": encodeURI(JSON.stringify(geometry))
+            };
+        jQuery(document).ready(function() {
+            hud.APIRequest(request,function(response) {
+                balance = 0;
+                loan_count = 0;
+
+                $.map(response.features, function(feature,i) {
+                    console.log("Feature", feature);
+                    console.log("Count", feature.attributes['IIF_CNT'] )
+                    console.log("Balance", feature.attributes['UNPD_BAL_SUM'] )
+                    if(feature.attributes['IIF_CNT'] !== null && feature.attributes['IIF_CNT'] !== undefined) {
+                        loan_count += parseInt(feature.attributes['IIF_CNT']);
+                        balance += parseInt(feature.attributes['UNPD_BAL_SUM']);
+                    }
+                    $('#result-loan').html(loan_count);
+                    $('#result-balance').html(balance);
+                });
+                
+            });
+        });
+    </script>
+</head>
+<body style="margin: 0px; padding: 0px;">
+<ul>
+    <li>Loan Count: <span id="result-loan"></span></li>
+    <li>Unpaid Principle Balance: <span id="result-balance"></span></li>
+
+</ul>
+<div id="features"></div>
+</body>
+</html>
