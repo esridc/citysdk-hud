@@ -3,7 +3,7 @@
   <head>
     <meta name="viewport" content="initial-scale=1.0, user-scalable=no">
     <meta charset="utf-8">
-    <title>Rectangle Events</title>
+    <title>CitySDK-HUD</title>
     <style>
       html, body, #map-canvas {
         height: 100%;
@@ -23,6 +23,13 @@
       }
     </style>
     <script src="https://maps.googleapis.com/maps/api/js?v=3.exp"></script>
+    <script type="text/javascript" src="bower_components/jquery/dist/jquery.min.js"></script>
+    <script type="text/javascript" src="bower_components/bootstrap/dist/js/bootstrap.min.js"></script>
+    <script type="text/javascript" src="https://rawgit.com/uscensusbureau/citysdk/master/js/citysdk.js"></script>
+    <script type="text/javascript" src="https://rawgit.com/uscensusbureau/citysdk/master/js/citysdk.census.js"></script>
+    <script src="https://rawgit.com/esridc/citysdk-arcgis/gh-pages/js/citysdk.arcgis.js" type="text/javascript"></script>
+    <script src="js/citysdk.hud.js" type="text/javascript"></script>
+        
     <script>
 var polygon;
 function initialize() {
@@ -63,7 +70,26 @@ function findTheData() {
   polygon.getPath().forEach(function(latLng, index) {
     esriJson['rings'][0].push([latLng.lng(), latLng.lat()])
   });
-  // TODO: Query the City SDK with the esriJson object.
+  // Query the City SDK with the esriJson object.
+
+    var request = { 
+        "source": "FHA Insurance",
+        "geometry": encodeURI(JSON.stringify(esriJson))
+    };
+    hud.APIRequest(request,function(response) {
+        balance = 0;
+        loan_count = 0;
+
+        $.map(response.features, function(feature,i) {
+            if(feature.attributes['IIF_CNT'] !== null && feature.attributes['IIF_CNT'] !== undefined) {
+                loan_count += parseInt(feature.attributes['IIF_CNT']);
+                balance += parseInt(feature.attributes['UNPD_BAL_SUM']);
+            }
+            $('#result-loan').html(loan_count);
+            $('#result-balance').html(balance);
+        });
+        
+    });  
 }
 
 /**
@@ -76,11 +102,22 @@ function clearPolygon() {
 // Initializes the map when the window loads.
 google.maps.event.addDomListener(window, 'load', initialize);
 
+var sdk = new CitySDK();
+var arcgis = sdk.modules.arcgis;
+var hud = sdk.modules.hud;
+var geometry = {"rings":[[[-79.98167037963867,40.44694705960048],[-79.97119903564453,40.4461632419783],[-79.9801254272461,40.439631072987716],[-79.98458862304688,40.44224401675592]]],"spatialReference":{"wkid":4326}};
+var balance = 0;
+var loan_count = 0;
     </script>
   </head>
   <body>
     <div id="map-canvas"></div>
     <input id="data-button" type="button" value="Find the data" onclick="findTheData()"/>
     <input id="clear-button" type="button" value="Clear polygon" onclick="clearPolygon()"/>
+
+    <ul>
+        <li>Loan Count: <span id="result-loan"></span></li>
+        <li>Unpaid Principle Balance: <span id="result-balance"></span></li>
+    </ul>    
   </body>
 </html>
