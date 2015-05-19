@@ -51,24 +51,36 @@ function initialize() {
 
   drawingManager.setMap(map);
 
-  // Listen to click events on the map and add the point to the polygon's path.
+  // When a polygon or rectangle is complete, issue the data request.
   google.maps.event.addListener(drawingManager, 'polygoncomplete',
         function(polygon) {
-    findTheData(polygon);
+    findTheData(polygon.getPath());
+  });
+  google.maps.event.addListener(drawingManager, 'rectanglecomplete',
+        function(rectangle) {
+    // Convert 
+    var northEast = rectangle.getBounds().getNorthEast();
+    var southWest = rectangle.getBounds().getSouthWest();
+    var path = new google.maps.MVCArray([
+      northEast,
+      new google.maps.LatLng(southWest.lat(), northEast.lng()),
+      southWest,
+      new google.maps.LatLng(northEast.lat(), southWest.lng())]);
+    findTheData(path);
   });
 }
 
 /**
  * Queries the City SDK's HUD module using the polygon's path.
  */
-function findTheData(polygon) {
+function findTheData(polygonPath) {
   var esriJson = {
     'rings' : [[]],
     'spatialReference': {
       'wkid': 4326
     }
   };
-  polygon.getPath().forEach(function(latLng, index) {
+  polygonPath.forEach(function(latLng, index) {
     esriJson['rings'][0].push([latLng.lng(), latLng.lat()])
   });
 
