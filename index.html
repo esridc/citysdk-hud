@@ -17,6 +17,9 @@
       #map-controls {
         font-size: 16px;
       }
+      .result {
+        color: blue;
+      }
 
     </style>
     <script src="https://maps.googleapis.com/maps/api/js?v=3.exp&libraries=drawing"></script>
@@ -113,6 +116,23 @@ function findTheData(polygonPath) {
         "features": []
     };
 
+     var request = {
+          "lat": 42.0,
+          "lng": -77.0,
+          "level": "blockGroup",
+          "container": "state",
+          "containerGeometry": esriJson,
+          "variables": [
+              "population"
+          ]
+      };
+      console.log("Request", request)
+
+        census.APIRequest(request, function(response) {
+          console.log("Census Response", response);                    
+        $('#result-population').html(response.data.population);
+        });
+
       $.map(response.features, function(feature,i) {
         if(feature.attributes['IIF_CNT'] !== null && feature.attributes['IIF_CNT'] !== undefined) {
             loan_count += parseInt(feature.attributes['IIF_CNT']);
@@ -123,7 +143,7 @@ function findTheData(polygonPath) {
         geojson.features.push(Terraformer.ArcGIS.parse(feature));
 
         $('#result-loan').html(loan_count);
-        $('#result-balance').html('$' + balance.formatMoney(2));
+        $('#result-balance').html(balance.formatMoney(2));
       });
       // TODO: Call geojson
       console.log("GeoJSON", geojson);
@@ -174,8 +194,9 @@ var n = this,
           </div>
           <div class="col-lg-4">
             <div id="map-controls">
-                Loan Count: <span id="result-loan"></span><br />
-                Unpaid Principle Balance: <span id="result-balance"></span>
+                There are <span id="result-loan" class="result"></span> loans <br />
+                with a $<span class="result" id="result-balance"></span> unpaid principle balance <br />
+                in an area of <span class="result" id="result-population"></span> people.
             </div>               
           </div>
       </div>
