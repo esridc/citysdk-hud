@@ -17,7 +17,6 @@ HUDModule.prototype.hud_data = {
   "FHA Insurance": "http://services.arcgis.com/VTyQ9soqVukalItT/arcgis/rest/services/FHA_Insurance_in_Force_by_Tract/FeatureServer/0"
 }
 
-
 /**
 * Query the HUD API
 *
@@ -33,7 +32,7 @@ HUDModule.prototype.APIRequest = function(parameters, callback) {
   parameters.url = this.hud_data[parameters.source];
 
   var arcgis = sdk.modules.arcgis;
-  console.log("parameters", parameters);
+
   arcgis.APIRequest(parameters, function(response) {
     console.log(response)
     callback(response);
