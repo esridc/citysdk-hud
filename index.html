@@ -11,16 +11,6 @@
         margin: 0px;
         padding: 0px
       }
-      #data-button {
-        position: absolute;
-        top: 0px;
-        right: 20px;
-      }
-      #clear-button {
-        position: absolute;
-        top: 50px;
-        right: 20px;
-      }
     </style>
     <script src="https://maps.googleapis.com/maps/api/js?v=3.exp&libraries=drawing"></script>
     <script type="text/javascript" src="bower_components/jquery/dist/jquery.min.js"></script>
@@ -127,9 +117,6 @@ var loan_count = 0;
   </head>
   <body>
     <div id="map-canvas"></div>
-    <input id="data-button" type="button" value="Find the data" onclick="findTheData()"/>
-    <input id="clear-button" type="button" value="Clear polygon" onclick="clearPolygon()"/>
-
     <ul>
         <li>Loan Count: <span id="result-loan"></span></li>
         <li>Unpaid Principle Balance: <span id="result-balance"></span></li>
