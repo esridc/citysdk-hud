@@ -147,7 +147,18 @@ function findTheData(polygonPath) {
       });
       // TODO: Call geojson
       console.log("GeoJSON", geojson);
-      map.data.addGeoJson(geojson);
+      var features = map.data.addGeoJson(geojson);
+      for (var i = 0; features && i < features.length; ++i) {
+        var feature = features[i];
+        var unpd_bal_sum = feature.getProperty('UNPD_BAL_SUM');
+        var id = feature.getId();
+        map.data.overrideStyle(feature, {
+          strokeWeight: 2,
+          strokeColor: 'black',
+          fillColor: 'blue',
+          fillOpacity: unpd_bal_sum / 6000000
+        }); 
+      }
   });  
 }
 
