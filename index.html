@@ -12,7 +12,7 @@
         padding: 0px
       }
       #map-canvas {
-        height: 400px;
+        height: 600px;
       }
       #map-controls {
         font-size: 16px;
@@ -24,6 +24,11 @@
         margin-top: 40px;
         border-top: 1px solid #888;
         color: #888;
+        position: absolute;
+        top: 430px;
+      }
+      #output {
+        display: none;
       }
 
     </style>
@@ -114,6 +119,7 @@ function findTheData(polygonPath) {
       "geometry": encodeURI(JSON.stringify(esriJson))
   };
   hud.APIRequest(request,function(response) {
+    $("#output").show()
     balance = 0;
     loan_count = 0;
     var geojson = {
@@ -131,7 +137,7 @@ function findTheData(polygonPath) {
               "population"
           ]
       };
-      console.log("Request", request)
+        
 
         census.APIRequest(request, function(response) {
           console.log("Census Response", response);                    
@@ -201,7 +207,7 @@ var n = this,
   <div class="container">
       <div class="row">
         <div class="col-lg-12">
-          <h3>CitySDK-HUD</h3>
+          <h3>Demo of CitySDK-HUD</h3>
         </div>
       </div>
       <div class="row">
@@ -211,9 +217,11 @@ var n = this,
           <div class="col-lg-4">
             <div id="map-controls">
               <h3>How much is owed?</h3>
+              <div id="output">
                 There are <span id="result-loan" class="result"></span> loans <br />
                 with a $<span class="result" id="result-balance"></span> unpaid principle balance <br />
                 in an area of <span class="result" id="result-population"></span> people.
+              </div>
             </div>
             <div id="sources">
                 <strong>Data Sources</strong>
