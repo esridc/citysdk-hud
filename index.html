@@ -11,16 +11,14 @@
         margin: 0px;
         padding: 0px
       }
-      #data-button {
-        position: absolute;
-        top: 0px;
-        right: 20px;
+      #map-canvas {
+        float: left;
       }
-      #clear-button {
-        position: absolute;
-        top: 50px;
-        right: 20px;
+      #map-controls {
+        width: 10%;
+        float: right;
       }
+
     </style>
     <script src="https://maps.googleapis.com/maps/api/js?v=3.exp"></script>
     <script type="text/javascript" src="bower_components/jquery/dist/jquery.min.js"></script>
@@ -29,7 +27,7 @@
     <script type="text/javascript" src="https://rawgit.com/uscensusbureau/citysdk/master/js/citysdk.census.js"></script>
     <script src="https://rawgit.com/esridc/citysdk-arcgis/gh-pages/js/citysdk.arcgis.js" type="text/javascript"></script>
     <script src="js/citysdk.hud.js" type="text/javascript"></script>
-        
+
     <script>
 var polygon;
 function initialize() {
@@ -105,19 +103,20 @@ google.maps.event.addDomListener(window, 'load', initialize);
 var sdk = new CitySDK();
 var arcgis = sdk.modules.arcgis;
 var hud = sdk.modules.hud;
-var geometry = {"rings":[[[-79.98167037963867,40.44694705960048],[-79.97119903564453,40.4461632419783],[-79.9801254272461,40.439631072987716],[-79.98458862304688,40.44224401675592]]],"spatialReference":{"wkid":4326}};
 var balance = 0;
 var loan_count = 0;
     </script>
   </head>
   <body>
     <div id="map-canvas"></div>
-    <input id="data-button" type="button" value="Find the data" onclick="findTheData()"/>
-    <input id="clear-button" type="button" value="Clear polygon" onclick="clearPolygon()"/>
+    <div id="map-controls">
+        <input id="data-button" type="button" value="Find the data" onclick="findTheData()"/>
+        <input id="clear-button" type="button" value="Clear polygon" onclick="clearPolygon()"/>
 
-    <ul>
-        <li>Loan Count: <span id="result-loan"></span></li>
-        <li>Unpaid Principle Balance: <span id="result-balance"></span></li>
-    </ul>    
+        <ul>
+            <li>Loan Count: <span id="result-loan"></span></li>
+            <li>Unpaid Principle Balance: <span id="result-balance"></span></li>
+        </ul>
+    </div>        
   </body>
 </html>
