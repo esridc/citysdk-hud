@@ -20,12 +20,18 @@
       .result {
         color: blue;
       }
-      #sources {
-        margin-top: 40px;
+      #instructions {
+        color: #888;        
+      }
+      #sources, #credits {
+        margin-top: 5px;
         border-top: 1px solid #888;
         color: #888;
         position: absolute;
         top: 430px;
+      }
+      #credits {
+        margin-top: 100px;
       }
       #output {
         display: none;
@@ -216,6 +222,7 @@ var n = this,
           </div>
           <div class="col-lg-4">
             <div id="map-controls">
+              <p id="instructions">Draw an area on the map to see...</p>
               <h3>How much is owed?</h3>
               <div id="output">
                 There are <span id="result-loan" class="result"></span> loans <br />
@@ -230,7 +237,14 @@ var n = this,
                     <li>US Housing &amp; Urban Development</li>
                     <li>US Census via <a href="https://github.com/uscensusbureau/citysdk">CitySDK</a></li>
                 </ul>
-            </div>          
+            </div>
+            <div id="credits">
+                <strong>Built By</strong>
+                <ul>
+                    <li><a href="http://twitter.com/ajturner">Andrew Turner</a></li>
+                    <li><a href="https://github.com/sraub">Susannah Raub</a></li>
+                </ul>
+            </div>   
           </div>
       </div>
   </div> 
