@@ -147,7 +147,7 @@ function findTheData(polygonPath) {
 
         census.APIRequest(request, function(response) {
           console.log("Census Response", response);                    
-        $('#result-population').html(response.data.population);
+          $('#result-population').html(response.data[0].population);
         });
 
       $.map(response.features, function(feature,i) {
