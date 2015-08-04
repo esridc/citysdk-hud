@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta name="viewport" content="initial-scale=1.0, user-scalable=no">
+    <meta charset="utf-8">
+    <title>CitySDK-HUD</title>
+    <style>
+      html, body, #map-canvas {
+        height: 100%;
+        width: 100%;
+        margin: 0px;
+        padding: 0px
+      }
+      #map-canvas {
+        height: 600px;
+      }
+      #map-controls {
+        font-size: 16px;
+      }
+      .result {
+        color: blue;
+      }
+      #instructions {
+        color: #888;        
+      }
+      #sources,
+      #credits,
+      #toggle {
+        margin-top: 5px;
+        border-top: 1px solid #888;
+        color: #888;
+        position: absolute;
+        top: 430px;
+      }
+
+      #credits {
+        margin-top: 100px;
+      }
+      
+      #toggle {
+        margin-top: 200px;
+      }
+      #output {
+        display: none;
+      }
+
+    </style>
+    <script src="https://maps.googleapis.com/maps/api/js?v=3.exp&libraries=drawing"></script>
+    <script type="text/javascript" src="bower_components/jquery/dist/jquery.min.js"></script>
+    <script type="text/javascript" src="bower_components/bootstrap/dist/js/bootstrap.min.js"></script>
+    <script type="text/javascript" src="https://rawgit.com/uscensusbureau/citysdk/master/js/citysdk.js"></script>
+    <script type="text/javascript" src="https://rawgit.com/uscensusbureau/citysdk/master/js/citysdk.census.js"></script>
+    <script src="https://rawgit.com/esridc/citysdk-arcgis/gh-pages/js/citysdk.arcgis.js" type="text/javascript"></script>
+    <link href="./bower_components/bootstrap/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="./bower_components/bootstrap/dist/css/bootstrap-theme.min.css" rel="stylesheet">
+    <script src="js/citysdk.hud.js" type="text/javascript"></script>
+
+    <script>
+var polygons = [];
+var map;
+function initialize() {
+  var drawingManager = new google.maps.drawing.DrawingManager({
+    drawingMode: google.maps.drawing.OverlayType.POLYGON,
+    drawingControl: true,
+    drawingControlOptions: {
+      drawingModes: [
+        google.maps.drawing.OverlayType.POLYGON,
+        google.maps.drawing.OverlayType.RECTANGLE
+      ]
+    },
+    polygonOptions: {
+      strokeWeight: 2,
+      strokeOpacity: 0.9,
+      strokeColor: 'red',
+      fillColor: 'red',
+      fillOpacity: 0.05
+    },
+    rectangleOptions: {
+      strokeWeight: 2,
+      strokeOpacity: 0.9,
+      strokeColor: 'red',
+      fillColor: 'red',
+      fillOpacity: 0.05
+    }
+  });
+
+  var mapOptions = {
+    center: new google.maps.LatLng(40.45535, -79.97553),
+    zoom: 13
+  };
+  map = new google.maps.Map(document.getElementById('map-canvas'),
+      mapOptions);
+
+  drawingManager.setMap(map);
+
+  // When a polygon or rectangle is complete, issue the data request.
+  google.maps.event.addListener(drawingManager, 'polygoncomplete',
+        function(polygon) {
+    findTheData(polygon.getPath());
+  });
+  google.maps.event.addListener(drawingManager, 'rectanglecomplete',
+        function(rectangle) {
+    // Convert 
+    var northEast = rectangle.getBounds().getNorthEast();
+    var southWest = rectangle.getBounds().getSouthWest();
+    var path = new google.maps.MVCArray([
+      northEast,
+      new google.maps.LatLng(southWest.lat(), northEast.lng()),
+      southWest,
+      new google.maps.LatLng(northEast.lat(), southWest.lng())]);
+    findTheData(path);
+  });
+}
+
+/**
+ * Queries the City SDK's HUD module using the polygon's path.
+ */
+function findTheData(polygonPath) {
+  var esriJson = {
+    'rings' : [[]],
+    'spatialReference': {
+      'wkid': 4326
+    }
+  };
+  polygonPath.forEach(function(latLng, index) {
+    esriJson['rings'][0].push([latLng.lng(), latLng.lat()])
+  });
+
+  // Query the City SDK with the esriJson object.
+  var request = { 
+      "source": "FHA Insurance",
+      "geometry": encodeURI(JSON.stringify(esriJson))
+  };
+  hud.APIRequest(request,function(response) {
+    $("#output").show()
+    balance = 0;
+    loan_count = 0;
+    var geojson = {
+        "type": "FeatureCollection",
+        "features": []
+    };
+
+     var request = {
+          "lat": 42.0,
+          "lng": -77.0,
+          "level": "blockGroup",
+          "container": "state",
+          "containerGeometry": esriJson,
+          "variables": [
+              "population"
+          ]
+      };
+        
+
+        census.APIRequest(request, function(response) {
+          console.log("Census Response", response);                    
+          $('#result-population').html(response.data[0].population);
+        });
+
+      $.map(response.features, function(feature,i) {
+        if(feature.attributes['IIF_CNT'] !== null && feature.attributes['IIF_CNT'] !== undefined) {
+            loan_count += parseInt(feature.attributes['IIF_CNT']);
+            balance += parseInt(feature.attributes['UNPD_BAL_SUM']);
+        }
+    
+
+        geojson.features.push(Terraformer.ArcGIS.parse(feature));
+
+        $('#result-loan').html(loan_count);
+        $('#result-balance').html(balance.formatMoney(2));
+      });
+      // TODO: Call geojson
+      console.log("GeoJSON", geojson);
+      var features = map.data.addGeoJson(geojson);
+      for (var i = 0; features && i < features.length; ++i) {
+        var feature = features[i];
+        var unpd_bal_sum = feature.getProperty('UNPD_BAL_SUM');
+        var id = feature.getId();
+        map.data.overrideStyle(feature, {
+          strokeWeight: 2,
+          strokeColor: 'black',
+          fillColor: 'blue',
+          fillOpacity: unpd_bal_sum / 6000000
+        }); 
+      }
+  });  
+}
+
+/**
+ * Resets the polygon's path, removing it from the map.
+ */
+function clearPolygon() {
+  polygon.setPath([]);
+}
+
+// Initializes the map when the window loads.
+google.maps.event.addDomListener(window, 'load', initialize);
+
+var sdk = new CitySDK();
+var arcgis = sdk.modules.arcgis;
+var hud = sdk.modules.hud;
+var census = sdk.modules.census;
+census.enable("d9084c5c4a0e92c442406b5eae0f14ec71d83569");
+
+var balance = 0;
+var loan_count = 0;
+Number.prototype.formatMoney = function(c, d, t){
+var n = this, 
+    c = isNaN(c = Math.abs(c)) ? 2 : c, 
+    d = d == undefined ? "." : d, 
+    t = t == undefined ? "," : t, 
+    s = n < 0 ? "-" : "", 
+    i = parseInt(n = Math.abs(+n || 0).toFixed(c)) + "", 
+    j = (j = i.length) > 3 ? j % 3 : 0;
+   return s + (j ? i.substr(0, j) + t : "") + i.substr(j).replace(/(\d{3})(?=\d)/g, "$1" + t) + (c ? d + Math.abs(n - i).toFixed(c).slice(2) : "");
+ };
+    </script>
+  </head>
+  <body>
+  <div class="container">
+      <div class="row">
+        <div class="col-lg-12">
+          <h3>Demo of CitySDK-HUD</h3>
+        </div>
+      </div>
+      <div class="row">
+          <div class="col-lg-8">
+              <div id="map-canvas"></div>
+          </div>
+          <div class="col-lg-4">
+            <div id="map-controls">
+              <p id="instructions">Draw an area on the map to see...</p>
+              <h3>How much is owed?</h3>
+              <div id="output">
+                There are <span id="result-loan" class="result"></span> loans <br />
+                with a $<span class="result" id="result-balance"></span> unpaid principle balance <br />
+                in an area of <span class="result" id="result-population"></span> people.
+              </div>
+            </div>
+            <div id="sources">
+                <strong>Data Sources</strong>
+                <ul>
+                    <li>Powered by <a href="https://github.com/ajturner/citysdk-hud">CitySDK-HUD</a></li>
+                    <li>US Housing &amp; Urban Development</li>
+                    <li>US Census via <a href="https://github.com/uscensusbureau/citysdk">CitySDK</a></li>
+                </ul>
+            </div>
+            <div id="credits">
+                <strong>Built By</strong>
+                <ul>
+                    <li><a href="http://twitter.com/ajturner">Andrew Turner</a></li>
+                    <li><a href="https://github.com/sraub">Susannah Raub</a></li>
+                </ul>
+            </div>
+            <div id="toggle">
+                <strong>Alternate Version</strong>
+                <ul>
+                  <li><a href="index.html">Esri Leaflet</a></li>
+                </ul>
+              </div>
+            </div>  
+          </div>
+      </div>
+  </div> 
+  </body>
+</html>
