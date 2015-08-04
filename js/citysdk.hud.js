@@ -34,7 +34,7 @@ HUDModule.prototype.APIRequest = function(parameters, callback) {
   var arcgis = sdk.modules.arcgis;
 
   arcgis.APIRequest(parameters, function(response) {
-    console.log(response)
+    // console.log(response)
     callback(response);
   });
 
